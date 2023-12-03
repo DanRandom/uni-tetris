@@ -10,7 +10,7 @@ EndScreen::~EndScreen() {
 
 }
 
-void EndScreen::displayEnd() {
+void EndScreen::display() {
 
     const char message[128] = "GAME\nOVER";
 
@@ -23,7 +23,7 @@ void EndScreen::displayEnd() {
     while (!WindowShouldClose())
     {
         framesCounter++;
-        if (IsKeyPressed(KEY_ENTER)) gm.game();
+        if (IsKeyPressed(KEY_ENTER)) gm.runGame();
         
         BeginDrawing();
 
