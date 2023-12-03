@@ -1,5 +1,6 @@
 #include "raylib.h"
 #include "shape.h"
+#include "gameLoop.h"
 #include <iostream>
 
 Shape::Shape(int type, Color color) {
@@ -181,7 +182,7 @@ void Shape::updateGrid(int gameGrid[width][height]) {
             // Check if the cell is filled
             if (shape[i][j] == 1) {
                 // Update the grid if within bounds
-                if (gridX >= 0 && gridX < width && gridY >= 0 && gridY < height) {
+                if (isWithinBounds()) {
                     if(shapeType != 0) {
                         gameGrid[gridX][gridY] = shapeType;
                     } else {

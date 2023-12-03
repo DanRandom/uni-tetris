@@ -10,7 +10,7 @@ StartScreen::~StartScreen() {
 
 }
 
-void StartScreen::displayStart() {
+void StartScreen::display() {
 
     const int screenWidth = tileSize * width + 250;
     const int screenHeight = tileSize * height + 100;
@@ -28,7 +28,7 @@ void StartScreen::displayStart() {
     while (!WindowShouldClose())
     {
         framesCounter++;
-        if (IsKeyPressed(KEY_ENTER)) gm.game();
+        if (IsKeyPressed(KEY_ENTER)) gm.runGame();
         
         BeginDrawing();
 

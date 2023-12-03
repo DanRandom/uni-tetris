@@ -2,27 +2,24 @@
 #include "gameLoop.h"
 #include "shape.h"
 #include "endScreen.h"
+#include "ShapeFactory.h"
+#include "ScoringObserver.h"
 #include <iostream>
 #include <random>
 #include <algorithm>
 
-gameLoop::gameLoop() {
+gameLoop::gameLoop() : score(0), scoringObserver(score) {
+    currentScreen = &startScreen;
     for (int x = 0; x < width; x++) {
         for (int y = 0; y < height; y++) {
             gameGrid[x][y] = 0;
         }
     }
-    score = 0;
 }
 
 gameLoop::~gameLoop() {
-
 }
 
-Shape createShape() {
-    Color colors[] = {RED, BLUE, GREEN, YELLOW, PURPLE, ORANGE, PINK};
-    return Shape(rand() % 7, colors[rand() % 7]);
-}
 
 void gameLoop::clearFullRows() {
     //Check for a full row
@@ -52,16 +49,17 @@ void gameLoop::clearFullRows() {
                     gameGrid[x][i + 1] = gameGrid[x][i];
                 }
             }
-            score += 10;
+            scoringObserver.onRowFilled();
         }
     }
 }
 
 
 
-void gameLoop::game()
+void gameLoop::runGame()
 {
     EndScreen end;
+    ShapeFactory shapeFactory;
     const float movementInterval = 500.0f;
     const float fallingInterval = 500.0f;
     float elapsedMoveTime = 0.0f;
@@ -69,14 +67,14 @@ void gameLoop::game()
     bool rotateKeyPressed = false;
 
 
-    Shape shape = createShape();
+    Shape shape = shapeFactory.createRandomShape();
     Shape prevShape = shape;
     bool drawOldShape = false;
     bool fastFall = false;
 
     SetTargetFPS(60);
-    
 
+    
     while (!WindowShouldClose())
     {
         float deltaTime = GetFrameTime() * 1000;
@@ -88,11 +86,12 @@ void gameLoop::game()
             clearFullRows();
             prevShape = shape;
             drawOldShape = true;
-            shape = createShape();
+            shape = shapeFactory.createRandomShape();
         }
         //Check if the game is over
         if (shape.hasTouchedGround(gameGrid)) {
-            end.displayEnd();
+            currentScreen = &endScreen;
+            currentScreen -> display();
         }
 
         if (IsKeyDown(KEY_DOWN)) {
