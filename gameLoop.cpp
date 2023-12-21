@@ -21,6 +21,7 @@ gameLoop::~gameLoop() {
 }
 
 
+
 void gameLoop::clearFullRows() {
     //Check for a full row
     for (int y = height - 1; y >= 0; --y) {

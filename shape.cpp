@@ -46,6 +46,49 @@ Shape::Shape(int type, Color color) {
 
     }
 
+    Shape::Shape(int type, Color color, int x, int y) {
+        shapeType = type;
+        shapeColor = color;
+
+        //Fill the shape with zeros
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                shape[i][j] = 0;
+            }
+        }
+
+        // Initialize the shape data
+        switch (shapeType) {
+            case 0: // I shape
+                shape[0][1] = shape[1][1] = shape[2][1] = shape[3][1] = 1;
+                break;
+            case 1: // J shape
+                shape[0][2] = shape[1][2] = shape[2][2] = shape[2][1] = 1;
+                break;
+            case 2: // L shape
+                shape[0][1] = shape[1][1] = shape[2][1] = shape[2][2] = 1;
+                break;
+            case 3: // O shape
+                shape[1][1] = shape[1][2] = shape[2][1] = shape[2][2] = 1;
+                break;
+            case 4: // S shape
+                shape[1][1] = shape[1][2] = shape[2][2] = shape[2][3] = 1;
+                break;
+            case 5: // T shape
+                shape[1][1] = shape[1][2] = shape[1][3] = shape[2][2] = 1;
+                break;
+            case 6: // Z shape
+                shape[1][2] = shape[1][3] = shape[2][1] = shape[2][2] = 1;
+                break;
+            default:
+                break;
+        }
+        // Set the starting position
+        posX = x;
+        posY = y;
+
+    }
+
     // Constructor for copying a shape
     Shape::Shape(const Shape& other) {
         shapeType = other.shapeType;
@@ -72,6 +115,18 @@ int Shape::getType() {
     return shapeType;
 }
 
+int Shape::getPositionX() {
+    return posX;
+}
+
+int Shape::getPositionY() {
+    return posY;
+}
+
+Color Shape::getColor() {
+    return shapeColor;
+}
+
 void Shape::draw(int tileSize) {
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
@@ -91,7 +146,6 @@ void Shape::draw(int tileSize) {
 }
 
 
-
 void Shape::move(int x, int y, int gameGrid[width][height], bool isDownPressed) {
     int newX = posX + x;
     int newY = posY + y;
@@ -105,7 +159,7 @@ void Shape::move(int x, int y, int gameGrid[width][height], bool isDownPressed) 
                 int gridX = newX + j;
                 int gridY = newY + i;
 
-                if (gridX < 0 || gridX >= 10 || gridY >= 20 || gridY >= 0 && gameGrid[gridX][gridY] != 0) {
+                if (!isWithinBounds(gridX, gridY) || gameGrid[gridX][gridY] != 0) {
                     collision = true;
                     break;
                 }
@@ -153,6 +207,10 @@ void Shape::rotate() {
     }
 }
 
+bool Shape::isWithinBounds(int x, int y) {
+    return (x >= 0 && x < width && y >= 0 && y < height);
+}
+
 bool Shape::isWithinBounds() {
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
@@ -160,8 +218,8 @@ bool Shape::isWithinBounds() {
                 int newX = posX + j;
                 int newY = posY + i;
 
-                if (newX < 0 || newX >= width || newY < 0 || newY >= height) {
-                    return false; 
+                if (!isWithinBounds(newX, newY)) {
+                    return false;
                 }
             }
         }
@@ -169,54 +227,37 @@ bool Shape::isWithinBounds() {
     return true;
 }
 
-
-
 void Shape::updateGrid(int gameGrid[width][height]) {
-    // Iterate over the shape's cells
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
-            // Calculate grid coordinates
             int gridX = posX + j;
             int gridY = posY + i;
 
-            // Check if the cell is filled
-            if (shape[i][j] == 1) {
-                // Update the grid if within bounds
-                if (isWithinBounds()) {
-                    if(shapeType != 0) {
-                        gameGrid[gridX][gridY] = shapeType;
-                    } else {
-                        gameGrid[gridX][gridY] = shapeType + 8;
-                    }
-                }
+            if (shape[i][j] == 1 && isWithinBounds(gridX, gridY)) {
+                gameGrid[gridX][gridY] = (shapeType != 0) ? shapeType : (shapeType + 8);
             }
         }
     }
 }
-
-
 
 bool Shape::hasTouchedGround(int gameGrid[width][height]) {
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
             if (shape[i][j] == 1) {
-                int newY = posY + i;
+                int newY = posY + i + 1;
                 int newX = posX + j;
-
-                // Check top collisions for the game over state
-                if (newY < 0 || (newY < height && gameGrid[newX][newY] != 0)) {
+                // Check if it's against the ground or touches an existing shape
+                if (newY >= height || gameGrid[newX][newY] != 0) {
                     return true;
                 }
 
-                // Check ground collisions
-                if (newY + 1 >= height || gameGrid[newX][newY + 1] != 0) {
-                    return true;
+                // Check if it's against the wall or touches an existing shape upon spawn (gameover)
+                if (newX < 0 || newX >= width || gameGrid[newX][newY - 1] != 0 || (posY == 0 && gameGrid[newX][newY] != 0)) {
+                    return true; 
                 }
             }
         }
     }
 
-    return false;
+    return false; 
 }
-
-
